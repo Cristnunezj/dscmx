@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proyecto Camiones</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 300px;
+        }
+
+        h2 {
+            color: #333;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .success-message {
+            background-color: #dff0d8;
+            color: #3c763d;
+            padding: 10px;
+            margin-top: 10px;
+            border: 1px solid #d6e9c6;
+            border-radius: 5px;
+            display: none; /* Oculto por defecto */
+        }
+
+        .error-message {
+            background-color: #f2dede;
+            color: #a94442;
+            padding: 10px;
+            margin-top: 10px;
+            border: 1px solid #ebccd1;
+            border-radius: 5px;
+            display: none; /* Oculto por defecto */
+        }
+    </style>
+    <script>
+        var intervalID;
+        
+        function obtenerLocalizacion() {
+            if (navigator.geolocation) {
+                intervalID = setInterval(function() {
+                    navigator.geolocation.getCurrentPosition(enviarLocalizacion);
+                }, 1000);
+            } else {
+                document.getElementById("localizacion").value = "La geolocalización no es compatible con este navegador.";
+            }
+        }
+
+        function enviarLocalizacion(position) {
+            var latitud = position.coords.latitude;
+            var longitud = position.coords.longitude;
+            document.getElementById("localizacion").value = "Latitud: " + latitud + ", Longitud: " + longitud;
+            document.getElementById("latitud").value = latitud;
+            document.getElementById("longitud").value = longitud;
+
+            // Enviar datos usando AJAX para no recargar la página
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "main.php", true);
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    mostrarMensajeExito();
+                } else if (xhr.readyState === 4 && xhr.status !== 200) {
+                    mostrarMensajeError();
+                }
+            };
+            xhr.send("latitud=" + latitud + "&longitud=" + longitud);
+        }
+
+        function detenerEnvio() {
+            clearInterval(intervalID);
+        }
+
+        function mostrarMensajeExito() {
+            var mensaje = document.getElementById("mensaje-exito");
+            mensaje.style.display = "block";
+            setTimeout(function() {
+                mensaje.style.display = "none";
+            }, 3000); // El mensaje desaparecerá después de 3 segundos
+        }
+
+        function mostrarMensajeError() {
+            var mensaje = document.getElementById("mensaje-error");
+            mensaje.style.display = "block";
+            setTimeout(function() {
+                mensaje.style.display = "none";
+            }, 3000); // El mensaje desaparecerá después de 3 segundos
+        }
+    </script>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Camiones</h2>
+
+        <button onclick="obtenerLocalizacion()">Iniciar Envío</button>
+        <button onclick="detenerEnvio()">Detener Envío</button>
+
+        <br><br>
+
+        <input type="text" id="localizacion" readonly>
+
+        <br><br>
+
+        <input type="hidden" id="latitud" name="latitud">
+        <input type="hidden" id="longitud" name="longitud">
+
+        <div id="mensaje-exito" class="success-message">
+            ¡Localización guardada correctamente!
+        </div>
+
+        <div id="mensaje-error" class="error-message">
+            Error al guardar la localización.
+        </div>
+    </div>
+
+</body>
+</html>
